@@ -3,6 +3,7 @@ package ru.petrelevich.service;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
 import java.time.Duration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -33,5 +34,11 @@ public class DataStoreR2dbc implements DataStore {
     public Flux<Message> loadMessages(String roomId) {
         log.info("loadMessages roomId:{}", roomId);
         return messageRepository.findByRoomId(roomId).delayElements(Duration.of(3, SECONDS), workerPool);
+    }
+
+    @Override
+    public Flux<Message> loadAllMessages() {
+        log.info("loadMessages ALL");
+        return messageRepository.findAll().delayElements(Duration.of(1, SECONDS), workerPool);
     }
 }
