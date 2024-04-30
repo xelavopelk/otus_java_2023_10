@@ -11,4 +11,6 @@ public interface HwCache<K, V> {
     void addListener(HwListener<K, V> listener);
 
     void removeListener(HwListener<K, V> listener);
+
+    Integer size();
 }

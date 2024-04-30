@@ -46,7 +46,7 @@ public class DbServiceDemo {
         dbServiceClient.findAll().forEach(client -> log.info("client:{}", client));
     }
 
-    private static void flywayMigrations(DataSource dataSource) {
+    public static void flywayMigrations(DataSource dataSource) {
         log.info("db migration started...");
         var flyway = Flyway.configure()
                 .dataSource(dataSource)
