@@ -6,40 +6,41 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class LogProxy implements InvocationHandler {
-    private static final Logger logger = LoggerFactory.getLogger(Program.class);
+    private static final Logger logger = LoggerFactory.getLogger(LogProxy.class);
     private final Object realObject;
+    private final Set<String> loggedMethods;
 
     private LogProxy(Object toProxy) {
         this.realObject = toProxy;
+        Method[] declaredMethods = realObject.getClass().getDeclaredMethods();
+        loggedMethods = Arrays.stream(declaredMethods)
+                .filter(m -> Objects.nonNull(m.getAnnotation(Log.class)))
+                .map(this::shortName)
+                .collect(Collectors.toSet());
+    }
+
+    private String shortName(Method m) {
+        return m.getName() + ":" + Arrays.stream(m.getParameterTypes()).map(String::valueOf).collect(Collectors.joining(","));
     }
 
     @SuppressWarnings("unchecked")
     public static <T> T create(Class<T> interfaceType, T realObject) {
+        var ms = interfaceType.getDeclaredMethods();
         return (T) Proxy.newProxyInstance(
                 realObject.getClass().getClassLoader(),
                 new Class<?>[]{interfaceType},
                 new LogProxy(realObject));
     }
 
-    private Boolean checkArgs(Class<?>[] papamTypes, Object[] args) {
-        return Arrays.stream(papamTypes).toList().equals(Arrays.stream(args).map(Object::getClass).toList());
-    }
-
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Method[] declaredMethods = realObject.getClass().getDeclaredMethods();
-        for (Method declaredMethod : declaredMethods) {
-            if (declaredMethod.getName().equals(method.getName())) {
-                if (Objects.nonNull(declaredMethod.getAnnotation(Log.class)) && checkArgs(declaredMethod.getParameterTypes(), args)) {
-                    String params = Arrays.stream(args).map(String::valueOf).collect(Collectors.joining(","));
-                    logger.info("executed method {} params: {}", method.getName(), params);
-                }
-            }
+        if (loggedMethods.contains(shortName(method))) {
+            String params = Arrays.stream(args).map(String::valueOf).collect(Collectors.joining(","));
+            logger.info("executed method {} params: {}", method.getName(), params);
         }
         return method.invoke(realObject, args);
     }

@@ -7,7 +7,8 @@ public class Program {
     private static final Logger logger = LoggerFactory.getLogger(Program.class);
     public static void main(String[] args) {
         logger.info("HW-10");
-        TestLoggingInterface test = LogProxy.create(TestLoggingInterface.class, new TestLogging());
+        TestLoggingInterface obj = new TestLogging();
+        TestLoggingInterface test = LogProxy.create(TestLoggingInterface.class, obj);
         test.calculation(1);
         test.calculation(1,2);
         test.calculation(1,2,"3");
