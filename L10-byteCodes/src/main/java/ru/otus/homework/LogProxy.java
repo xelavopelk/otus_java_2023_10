@@ -29,7 +29,6 @@ public class LogProxy implements InvocationHandler {
 
     @SuppressWarnings("unchecked")
     public static <T> T create(Class<T> interfaceType, T realObject) {
-        var ms = interfaceType.getDeclaredMethods();
         return (T) Proxy.newProxyInstance(
                 realObject.getClass().getClassLoader(),
                 new Class<?>[]{interfaceType},
