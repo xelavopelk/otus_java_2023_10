@@ -11,8 +11,8 @@ import java.util.Optional;
 
 public class DbServiceClientCachedImpl implements DBServiceClient {
     private static final Logger logger = LoggerFactory.getLogger(DbServiceClientCachedImpl.class);
-    final MyCache<Long, Client> cache = new MyCache<>();
-    final DBServiceClient dbClient;
+    private final MyCache<String, Client> cache = new MyCache<>();
+    private final DBServiceClient dbClient;
 
     public DbServiceClientCachedImpl(DBServiceClient dbClient) {
         this.dbClient = dbClient;
@@ -26,16 +26,16 @@ public class DbServiceClientCachedImpl implements DBServiceClient {
 
     @Override
     public Client saveClient(Client client) {
-        cache.put(client.getId(), client);
+        cache.put(String.valueOf(client.getId()), client);
         return dbClient.saveClient(client);
     }
 
     @Override
     public Optional<Client> getClient(long l) {
-        var cached = cache.get(l);
+        var cached = cache.get(String.valueOf(l));
         if (Objects.isNull(cached)) {
             var toCache = dbClient.getClient(l);
-            toCache.ifPresent(client -> cache.put(client.getId(), client));
+            toCache.ifPresent(client -> cache.put(String.valueOf(client.getId()), client));
             return toCache;
         } else {
             return Optional.of(cached);
@@ -46,7 +46,7 @@ public class DbServiceClientCachedImpl implements DBServiceClient {
     public List<Client> findAll() {
         var toCache = dbClient.findAll();
         for (var client : toCache) {
-            cache.put(client.getId(), client);
+            cache.put(String.valueOf(client.getId()), client);
         }
         return toCache;
     }
